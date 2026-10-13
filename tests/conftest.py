@@ -9,6 +9,11 @@ os.environ.setdefault("SECRET_KEY", "test-secret-key-for-ci-only-32-chars-min")
 os.environ.setdefault("DATABASE_URL", f"sqlite:///{tempfile.mktemp(suffix='.db')}")
 os.environ.setdefault("MODEL_TYPE", "ollama")
 os.environ.setdefault("OLLAMA_BASE_URL", "http://localhost:11434")
+# The test suite makes far more than 5 register/login calls per run, all
+# sharing one synthetic client address under httpx's ASGI transport --
+# same shared rate-limit key a real client would have. Raise the limit
+# for tests instead of disabling the mechanism entirely.
+os.environ.setdefault("AUTH_RATE_LIMIT", "100000/minute")
 
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine

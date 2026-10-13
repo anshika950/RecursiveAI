@@ -4,8 +4,12 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.database import Base, engine
+from app.logging_config import configure_logging
+from app.rate_limit import limiter
 from app.routers import admin, auth, files, model, oauth
 
 
@@ -14,6 +18,7 @@ async def lifespan(app: FastAPI):
     # Startup: create any tables that don't exist yet. This project has no
     # migration tool (see MIGRATIONS.md) — schema changes in dev require
     # dropping app.db and letting this recreate it.
+    configure_logging()
     Base.metadata.create_all(bind=engine)
     yield
     # Shutdown: nothing to clean up yet.
@@ -25,6 +30,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
