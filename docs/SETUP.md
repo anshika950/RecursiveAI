@@ -181,7 +181,16 @@ gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker
 
 ---
 
-## Testing
+## Automated Tests
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+pytest -q --cov=app --cov-report=term-missing tests/
+```
+
+Runs automatically in CI (`.github/workflows/ci.yml`) on every push/PR to `main`/`develop`.
+
+## Manual Testing
 
 ### Test Authentication
 ```bash
