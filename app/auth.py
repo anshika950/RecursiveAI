@@ -15,7 +15,14 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except ValueError:
+        # Raised by passlib for a string that isn't a recognized hash at
+        # all -- e.g. the OAuth-only sentinel value set on accounts
+        # created via Google sign-in, which have no real password to
+        # verify against. Treat it as "wrong password", not a crash.
+        return False
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
