@@ -16,6 +16,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database import Base, get_db
 from app.main import app
+from app.models import User, UserRole
 
 TEST_DB_PATH = tempfile.mktemp(suffix=".db")
 TEST_DATABASE_URL = f"sqlite:///{TEST_DB_PATH}"
@@ -66,3 +67,26 @@ async def registered_user(client):
     assert res.status_code == 200
     token = res.json()["access_token"]
     return {"username": payload["username"], "password": payload["password"], "token": token}
+
+
+@pytest_asyncio.fixture
+async def admin_user(client):
+    suffix = uuid.uuid4().hex[:8]
+    payload = {
+        "username": f"admin_{suffix}",
+        "email": f"admin_{suffix}@example.com",
+        "password": "Password123!",
+    }
+    res = await client.post("/auth/register", json=payload)
+    assert res.status_code == 200
+    token = res.json()["access_token"]
+
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.username == payload["username"]).first()
+        user.role = UserRole.ADMIN
+        db.commit()
+    finally:
+        db.close()
+
+    return {"username": payload["username"], "token": token}
