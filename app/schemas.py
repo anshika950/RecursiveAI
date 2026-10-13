@@ -33,6 +33,10 @@ class GenerateResponse(BaseModel):
     used_fallback: bool = False
 
 
+class GenerateWithContextResponse(GenerateResponse):
+    context_chunks: list[str] = Field(default_factory=list, description="Retrieved document chunks used as context")
+
+
 class ModelInfo(BaseModel):
     id: str
     name: str

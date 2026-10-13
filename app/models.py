@@ -26,6 +26,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     generations = relationship("GenerationLog", back_populates="user")
+    documents = relationship("Document", back_populates="owner")
 
 
 class GenerationLog(Base):
@@ -42,3 +43,33 @@ class GenerationLog(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="generations")
+
+
+class Document(Base):
+    __tablename__ = "documents"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    filename = Column(String(255), nullable=False)
+    owner_username = Column(String(50), ForeignKey("users.username"), index=True, nullable=False)
+    content_text = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    owner = relationship("User", back_populates="documents")
+    chunks = relationship("DocumentChunk", back_populates="document", cascade="all, delete-orphan")
+
+
+class DocumentChunk(Base):
+    __tablename__ = "document_chunks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    document_id = Column(Integer, ForeignKey("documents.id"), index=True, nullable=False)
+    owner_username = Column(String(50), ForeignKey("users.username"), index=True, nullable=False)
+    chunk_text = Column(Text, nullable=False)
+    # No persisted vector column: TF-IDF vector dimensionality depends on
+    # the fitted vocabulary, so a vector saved from one fit isn't
+    # comparable to a vector from a later fit (e.g. after a new document
+    # changes the vocabulary). VectorStore.search() refits the vectorizer
+    # over this owner's current chunks + the query at search time instead
+    # of trusting a stored-but-potentially-stale vector.
+
+    document = relationship("Document", back_populates="chunks")

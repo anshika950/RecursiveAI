@@ -11,8 +11,14 @@ from app.database import get_db
 from app.dependencies import get_current_user_object
 from app.models import GenerationLog, User
 from app.models_config import list_all_models_flat
-from app.schemas import GenerateRequest, GenerateResponse, ModelsListResponse, ModelStatus
-from app.services import ai_service, token_service
+from app.schemas import (
+    GenerateRequest,
+    GenerateResponse,
+    GenerateWithContextResponse,
+    ModelsListResponse,
+    ModelStatus,
+)
+from app.services import ai_service, token_service, vector_store
 
 router = APIRouter(prefix="/model", tags=["model"])
 
@@ -55,6 +61,53 @@ async def generate(
         provider=request.provider,
         tokens_generated=tokens_generated,
         used_fallback=used_fallback,
+    )
+
+
+@router.post("/generate-with-context", response_model=GenerateWithContextResponse)
+async def generate_with_context(
+    request: GenerateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_object),
+):
+    """Retrieval-augmented generation: retrieves the current user's most
+    relevant uploaded-document chunks for this prompt (TF-IDF + cosine
+    similarity, see app/services/vector_store.py) and injects them as
+    context before generating."""
+    context_chunks = vector_store.search(db, request.prompt, current_user.username, top_k=3)
+
+    if context_chunks:
+        context_block = "\n\n".join(context_chunks)
+        augmented_prompt = f"Context:\n{context_block}\n\nQuestion: {request.prompt}\n\nAnswer:"
+    else:
+        augmented_prompt = request.prompt
+
+    generated_text, used_fallback = await ai_service.generate_response(
+        request.provider, request.model, augmented_prompt, request.max_tokens, request.temperature
+    )
+    tokens_generated = token_service.count_tokens(generated_text)
+
+    db.add(
+        GenerationLog(
+            username=current_user.username,
+            prompt=augmented_prompt,
+            response=generated_text,
+            model_name=request.model,
+            provider=request.provider,
+            tokens_used=tokens_generated,
+            used_fallback=1 if used_fallback else 0,
+        )
+    )
+    current_user.tokens_consumed = (current_user.tokens_consumed or 0) + tokens_generated
+    db.commit()
+
+    return GenerateWithContextResponse(
+        generated_text=generated_text,
+        model=request.model,
+        provider=request.provider,
+        tokens_generated=tokens_generated,
+        used_fallback=used_fallback,
+        context_chunks=context_chunks,
     )
 
 
