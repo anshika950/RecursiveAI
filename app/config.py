@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     PORT: int = 8000
     DEBUG: bool = False
 
+    # Google OAuth (see .env.example for where to get these). Left blank by
+    # default -- the oauth router returns a clear 503 instead of crashing
+    # when they're unset.
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/auth/oauth/google/callback"
+
     class Config:
         env_file = ".env"
 
