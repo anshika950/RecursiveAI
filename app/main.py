@@ -1,16 +1,29 @@
+from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
+
 from app.database import Base, engine
 from app.routers import auth, model
 
-Base.metadata.create_all(bind=engine)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: create any tables that don't exist yet. This project has no
+    # migration tool (see MIGRATIONS.md) — schema changes in dev require
+    # dropping app.db and letting this recreate it.
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Shutdown: nothing to clean up yet.
+
 
 app = FastAPI(
     title="RecursiveAI 🧠",
     description="Intelligent text generation powered by open models with JWT authentication",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
