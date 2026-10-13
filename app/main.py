@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, engine
-from app.routers import admin, auth, model
+from app.routers import admin, auth, files, model
 
 
 @asynccontextmanager
@@ -37,6 +37,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(model.router)
 app.include_router(admin.router)
+app.include_router(files.router)
 
 static_path = Path(__file__).parent.parent / "static"
 if static_path.exists():
