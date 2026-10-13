@@ -5,17 +5,12 @@ services:
     build: .
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      - SECRET_KEY=your-secret-key-change-in-production
-      - ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - MODEL_TYPE=ollama
-      - MODEL_NAME=mistral
+      # Overrides .env's localhost default -- inside the compose network,
+      # Ollama is reachable at its service name, not localhost.
       - OLLAMA_BASE_URL=http://ollama:11434
-      - DATABASE_URL=sqlite:///./app.db
-      - HOST=0.0.0.0
-      - PORT=8000
-      - DEBUG=False
     depends_on:
       - ollama
     networks:
