@@ -39,7 +39,7 @@ This interactive dashboard lets you:
 
 **Explanation:**
 - User creates account with email validation (Pydantic v2)
-- Password is hashed with Bcrypt (never stored plain text)
+- Password is hashed with Argon2 (never stored plain text)
 - JWT token is generated immediately after registration
 - Token expires based on `ACCESS_TOKEN_EXPIRE_MINUTES`
 
@@ -165,7 +165,7 @@ class GenerateResponse(BaseModel):
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. User Registration                                        │
 │    - Email validated (Pydantic)                            │
-│    - Password hashed (Bcrypt)                              │
+│    - Password hashed (Argon2)                               │
 │    - Stored in SQLite database                             │
 └────────────────┬────────────────────────────────────────────┘
                  │
