@@ -30,6 +30,7 @@ class GenerateResponse(BaseModel):
     model: str
     provider: str
     tokens_generated: int
+    used_fallback: bool = False
 
 
 class ModelInfo(BaseModel):
