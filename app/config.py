@@ -23,6 +23,13 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "http://localhost:8000/auth/oauth/google/callback"
 
+    # slowapi rate-limit string for /auth/register and /auth/login, e.g.
+    # "5/minute". Overridden to something generous in the test environment
+    # (see tests/conftest.py) so the suite isn't rate-limited against
+    # itself -- it's one shared key_func (client IP) across every request
+    # in a run, same as a real client would be.
+    AUTH_RATE_LIMIT: str = "5/minute"
+
     class Config:
         env_file = ".env"
 
