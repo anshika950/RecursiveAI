@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecursiveAI - Control Deck</title>
+    <style>
+        :root {
+            --bg: #f3f5fb;
+            --card: rgba(255, 255, 255, 0.72);
+            --card-solid: #ffffff;
+            --border: rgba(79, 70, 229, 0.14);
+            --border-strong: rgba(79, 70, 229, 0.28);
+            --text: #1e1b4b;
+            --text-dim: #5b5a8c;
+            --accent: #4f46e5;
+            --accent-2: #06b6d4;
+            --accent-3: #ec4899;
+            --success: #10b981;
+            --error: #ef4444;
+            --warn: #f59e0b;
+            --radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Aurora background blobs */
+        .aurora {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .aurora span {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.45;
+            animation: drift 18s ease-in-out infinite alternate;
+        }
+
+        .aurora span:nth-child(1) {
+            width: 420px; height: 420px;
+            background: var(--accent);
+            top: -120px; left: -100px;
+        }
+
+        .aurora span:nth-child(2) {
+            width: 380px; height: 380px;
+            background: var(--accent-2);
+            top: 20%; right: -120px;
+            animation-delay: 4s;
+        }
+
+        .aurora span:nth-child(3) {
+            width: 320px; height: 320px;
+            background: var(--accent-3);
+            bottom: -140px; left: 30%;
+            animation-delay: 8s;
+        }
+
+        @keyframes drift {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, 60px) scale(1.15); }
+        }
+
+        /* Top navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 14px 28px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3em;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            white-space: nowrap;
+        }
+
+        .nav-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .tab-button {
+            padding: 9px 16px;
+            background: rgba(79, 70, 229, 0.06);
+            border: 1px solid transparent;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: var(--text-dim);
+            transition: all 0.25s;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: rgba(79, 70, 229, 0.12);
+            color: var(--accent);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            color: white;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+        }
+
+        .status-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            font-size: 0.8em;
+            font-weight: 600;
+            color: var(--error);
+            white-space: nowrap;
+        }
+
+        .status-chip.on {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: var(--success);
+        }
+
+        .status-chip .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        /* Layout */
+        .shell {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 28px 24px 60px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.35s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-3));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 8px 30px rgba(79, 70, 229, 0.08);
+        }
+
+        .card h3, .card h4 {
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-dim);
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--border-strong);
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-family: inherit;
+            background: rgba(255, 255, 255, 0.85);
+            color: var(--text);
+        }
+
+        textarea, input[type="text"], input[type="email"], input[type="password"] {
+            font-family: 'Courier New', monospace;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        button {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            color: white;
+            padding: 11px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 700;
+            transition: 0.25s;
+        }
+
+        button:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .button-group button {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .response-box {
+            background: #15123a;
+            color: #c9d1ff;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .response-box.error {
+            border-left-color: var(--error);
+            background: #2a1420;
+            color: #ffb4c0;
+        }
+
+        .response-box.success {
+            border-left-color: var(--success);
+            background: #0f2420;
+            color: #a7f3d0;
+        }
+
+        .token-display {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warn);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            word-break: break-all;
+            font-size: 0.8em;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .status.authenticated {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success);
+        }
+
+        .status.unauthenticated {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--error);
+        }
+
+        .endpoint-item {
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.6);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .endpoint-method {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.75em;
+            margin-right: 10px;
+        }
+
+        .method-post { background: var(--accent-2); color: white; }
+        .method-get { background: var(--success); color: white; }
+
+        .flow-diagram {
+            background: var(--card);
+            backdrop-filter: blur(14px);
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .flow-number {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .flow-text { color: var(--text); }
+
+        pre {
+            background: #15123a;
+            color: #c9d1ff;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 0.82em;
+            margin: 15px 0;
+        }
+
+        .architecture-box {
+            background: var(--card);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            padding: 18px;
+            border-radius: var(--radius);
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95em;
+        }
+
+        .feature-list li:before {
+            content: "◆ ";
+            color: var(--accent-2);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .model-info-box {
+            background: rgba(6, 182, 212, 0.08);
+            border-left: 4px solid var(--accent-2);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.88em;
+            display: none;
+        }
+
+        @media (max-width: 820px) {
+            .grid { grid-template-columns: 1fr; }
+            .navbar { flex-wrap: wrap; }
+            .nav-pills { order: 3; width: 100%; justify-content: flex-start; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="aurora"><span></span><span></span><span></span></div>
+
+    <nav class="navbar">
+        <div class="brand">🧠 RecursiveAI</div>
+        <div class="nav-pills">
+            <button class="tab-button active" onclick="openTab(event, 'register')">📝 Register</button>
+            <button class="tab-button" onclick="openTab(event, 'login')">🔑 Login</button>
+            <button class="tab-button" onclick="openTab(event, 'ai_model')">🤖 AI Model</button>
+            <button class="tab-button" onclick="openTab(event, 'api_flow')">📊 API Flow</button>
+            <button class="tab-button" onclick="openTab(event, 'architecture')">🏗️ Architecture</button>
+            <button class="tab-button" onclick="openTab(event, 'endpoints')">📍 Endpoints</button>
+            <button class="tab-button" onclick="openTab(event, 'raw_requests')">📝 Raw Requests</button>
+        </div>
+        <div class="status-chip" id="navAuthChip"><span class="dot"></span> Not Authenticated</div>
+    </nav>
+
+    <div class="shell">
+        <!-- TAB 1: REGISTER -->
+        <div id="register" class="tab-pane active">
+            <h2 class="section-title">📝 User Registration</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Register New Account</h3>
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" id="regUsername" placeholder="testuser" value="testuser">
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="regEmail" placeholder="test@example.com" value="test@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="regPassword" placeholder="password123" value="testpass123">
+                    </div>
+                    <button onclick="register()">Create Account</button>
+                    <div id="registerResponse" class="response-box" style="display:none;"></div>
+                </div>
+                <div class="card">
+                    <h3>Registration Info</h3>
+                    <ul class="feature-list">
+                        <li>Username: 3-50 characters</li>
+                        <li>Password: Minimum 8 characters</li>
+                        <li>Email: Valid email format</li>
+                        <li>Password: Hashed with Argon2</li>
+                        <li>JWT Token: Auto-generated</li>
+                        <li>Token expires: In 30 minutes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: LOGIN -->
+        <div id="login" class="tab-pane">
+            <h2 class="section-title">🔑 User Login</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Login to Account</h3>
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" id="loginUsername" placeholder="testuser" value="testuser">
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="loginPassword" placeholder="password123" value="testpass123">
+                    </div>
+                    <button onclick="login()">Login</button>
+                    <div id="loginResponse" class="response-box" style="display:none;"></div>
+                    <div id="tokenSection" style="display:none; margin-top: 20px;">
+                        <h3 style="margin-bottom: 10px;">🔑 Your Access Token:</h3>
+                        <div class="token-display" id="tokenDisplay"></div>
+                        <span class="status authenticated">✓ Authenticated</span>
+                        <button onclick="clearToken()" style="margin-left: 10px; background: var(--error); margin-top: 10px;">Logout</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Login Security</h3>
+                    <ul class="feature-list">
+                        <li>Password verified against hash</li>
+                        <li>JWT token generated on success</li>
+                        <li>Token valid for 30 minutes</li>
+                        <li>Contains username claim</li>
+                        <li>Signed with secret key</li>
+                        <li>Algorithm: HS256</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: AI MODEL -->
+        <div id="ai_model" class="tab-pane">
+            <h2 class="section-title">🤖 AI Model Inference</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Generate Text</h3>
+                    <div class="form-group">
+                        <label>Provider:</label>
+                        <select id="provider" onchange="loadModels()">
+                            <option value="ollama">🦙 Ollama (Local Models)</option>
+                            <option value="huggingface">🤗 Hugging Face (Free API)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Model:</label>
+                        <select id="model">
+                            <option value="orca-mini" selected>Orca Mini - Lightweight ✅ Ready</option>
+                            <option value="mistral">Mistral 7B - Fast & Efficient (downloading...)</option>
+                            <option value="llama2">Llama 2 7B - Meta's Model (not downloaded)</option>
+                            <option value="neural-chat">Neural Chat - Conversation (not downloaded)</option>
+                            <option value="dolphin">Dolphin - Uncensored (not downloaded)</option>
+                        </select>
+                    </div>
+                    <div id="modelInfo" class="model-info-box"></div>
+                    <div class="form-group">
+                        <label>Prompt:</label>
+                        <textarea id="prompt" placeholder="What is machine learning?" rows="4">What is machine learning?</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Tokens:</label>
+                        <input type="number" id="maxTokens" value="100" min="1" max="2000">
+                    </div>
+                    <div class="form-group">
+                        <label>Temperature:</label>
+                        <input type="number" id="temperature" value="0.7" min="0" max="2" step="0.1">
+                    </div>
+                    <div class="button-group">
+                        <button onclick="generateText()">Generate Text</button>
+                        <button onclick="checkStatus()">Check Status</button>
+                    </div>
+                    <div id="generateResponse" class="response-box" style="display:none;"></div>
+                </div>
+                <div class="card">
+                    <h3>Model Information</h3>
+                    <ul class="feature-list">
+                        <li>Model: Mistral (7B parameters)</li>
+                        <li>Backend: Ollama or Hugging Face</li>
+                        <li>Requires: Valid JWT token</li>
+                        <li>Temperature: 0.0-2.0 range</li>
+                        <li>Max tokens: 1-2000</li>
+                        <li>Pydantic v2 validated</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: API FLOW -->
+        <div id="api_flow" class="tab-pane">
+            <h2 class="section-title">📊 Complete API Flow</h2>
+            <div class="flow-diagram">
+                <div class="flow-step">
+                    <div class="flow-number">1</div>
+                    <div class="flow-text"><strong>Register:</strong> POST /auth/register → Create user account → Return JWT token</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">2</div>
+                    <div class="flow-text"><strong>Login:</strong> POST /auth/login → Verify credentials → Return new JWT token</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">3</div>
+                    <div class="flow-text"><strong>Authorize:</strong> Store token in localStorage → Include in Authorization header</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">4</div>
+                    <div class="flow-text"><strong>Verify Token:</strong> Server extracts token → Verify signature → Check expiration</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">5</div>
+                    <div class="flow-text"><strong>Generate:</strong> POST /model/generate (with token) → Call AI model → Validate response</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">6</div>
+                    <div class="flow-text"><strong>Response:</strong> Return Pydantic v2 validated JSON → Display to user</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px; color: var(--accent);">🔒 JWT Security Flow</h3>
+            <pre>
+User Registration
+         ↓
+Create credentials
+         ↓
+Hash password (Argon2)
+         ↓
+Store in SQLite DB
+         ↓
+Generate JWT token
+         ↓
+Return to client
+         ↓
+Client stores token (localStorage)
+         ↓
+Send in requests: Authorization: Bearer TOKEN
+         ↓
+Server verifies signature + expiration
+         ↓
+Extract username from token
+         ↓
+Allow access to protected endpoints
+            </pre>
+        </div>
+
+        <!-- TAB 5: ARCHITECTURE -->
+        <div id="architecture" class="tab-pane">
+            <h2 class="section-title">🏗️ System Architecture</h2>
+
+            <div class="architecture-box">
+                <strong>RecursiveAI Microservice Architecture</strong>
+                <pre>
+┌─────────────────────────────────────┐
+│     FastAPI Web Framework           │
+│  (Async, High Performance)          │
+└────────────────┬────────────────────┘
+                 │
+┌────────────────▼────────────────────┐
+│    API Layer (app/main.py)          │
+│  ├─ CORS Middleware                 │
+│  ├─ Static Files Mounting           │
+│  └─ Route Registration              │
+└────────────────┬────────────────────┘
+                 │
+        ┌────────┴────────┐
+        │                 │
+┌───────▼────────┐  ┌────▼────────────┐
+│ Auth Router    │  │ Model Router    │
+├────────────────┤  ├─────────────────┤
+│/auth/register  │  │/model/generate  │
+│/auth/login     │  │/model/status    │
+└───────┬────────┘  └────┬────────────┘
+        │                │
+        └────────┬───────┘
+                 │
+        ┌────────▼──────────┐
+        │ Middleware Layer  │
+        ├───────────────────┤
+        │ JWT Verification  │
+        │ Pydantic v2 Valid │
+        │ Error Handling    │
+        └────────┬──────────┘
+                 │
+        ┌────────▼────────────┐
+        │  Business Logic     │
+        ├────────────────────┤
+        │ Authentication     │
+        │ - Password hashing │
+        │ - Token generation │
+        │                    │
+        │ Model Integration  │
+        │ - Ollama support   │
+        │ - HF API support   │
+        └────────┬───────────┘
+                 │
+        ┌────────▼────────────┐
+        │   Data Layer        │
+        ├────────────────────┤
+        │ SQLAlchemy ORM     │
+        │ SQLite Database    │
+        │ User Model         │
+        └────────┬───────────┘
+                 │
+        ┌────────▼────────────┐
+        │ External Services   │
+        ├────────────────────┤
+        │ Ollama (localhost)  │
+        │ Hugging Face API    │
+        └─────────────────────┘
+                </pre>
+            </div>
+
+            <h3 style="color: var(--accent); margin-top: 20px;">Components</h3>
+            <div class="grid">
+                <div class="card">
+                    <h4>Authentication Module</h4>
+                    <ul class="feature-list">
+                        <li>Argon2 password hashing</li>
+                        <li>JWT token generation</li>
+                        <li>HTTPBearer security</li>
+                        <li>Token verification</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Database Module</h4>
+                    <ul class="feature-list">
+                        <li>SQLAlchemy 2.0 ORM</li>
+                        <li>SQLite (development)</li>
+                        <li>PostgreSQL (production)</li>
+                        <li>Dependency injection</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Validation & Schemas</h4>
+                    <ul class="feature-list">
+                        <li>Pydantic v2 models</li>
+                        <li>Field constraints</li>
+                        <li>Type checking</li>
+                        <li>Error handling</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Model Integration</h4>
+                    <ul class="feature-list">
+                        <li>Ollama local models</li>
+                        <li>Hugging Face API</li>
+                        <li>Demo mode fallback</li>
+                        <li>Error recovery</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: ENDPOINTS -->
+        <div id="endpoints" class="tab-pane">
+            <h2 class="section-title">📍 Available API Endpoints</h2>
+
+            <h3 style="color: var(--accent); margin-top: 0; margin-bottom: 15px;">🔓 Public Endpoints</h3>
+            <div class="endpoint-item">
+                <span class="endpoint-method method-get">GET</span> <strong>/health</strong>
+                <p style="margin-top: 5px; font-size: 0.9em;">Health check - no authentication required</p>
+            </div>
+            <div class="endpoint-item">
+                <span class="endpoint-method method-get">GET</span> <strong>/</strong>
+                <p style="margin-top: 5px; font-size: 0.9em;">Root endpoint - API info and documentation links</p>
+            </div>
+
+            <h3 style="color: var(--accent); margin-top: 25px; margin-bottom: 15px;">🔐 Authentication Endpoints</h3>
+            <div class="endpoint-item">
+                <span class="endpoint-method method-post">POST</span> <strong>/auth/register</strong>
+                <p style="margin-top: 5px; font-size: 0.9em;">Register new user - returns JWT token</p>
+                <p style="margin-top: 5px; font-size: 0.85em; color: var(--text-dim);">Body: {username, email, password}</p>
+            </div>
+            <div class="endpoint-item">
+                <span class="endpoint-method method-post">POST</span> <strong>/auth/login</strong>
+                <p style="margin-top: 5px; font-size: 0.9em;">Login user - returns JWT token</p>
+                <p style="margin-top: 5px; font-size: 0.85em; color: var(--text-dim);">Body: {username, password}</p>
+            </div>
+
+            <h3 style="color: var(--accent); margin-top: 25px; margin-bottom: 15px;">🔒 Protected Endpoints (Require JWT)</h3>
+            <div class="endpoint-item">
+                <span class="endpoint-method method-post">POST</span> <strong>/model/generate</strong>
+                <p style="margin-top: 5px; font-size: 0.9em;">Generate text using AI model</p>
+                <p style="margin-top: 5px; font-size: 0.85em; color: var(--text-dim);">Headers: Authorization: Bearer TOKEN</p>
+                <p style="margin-top: 3px; font-size: 0.85em; color: var(--text-dim);">Body: {prompt, max_tokens, temperature}</p>
+            </div>
+            <div class="endpoint-item">
+                <span class="endpoint-method method-get">GET</span> <strong>/model/status</strong>
+                <p style="margin-top: 5px; font-size: 0.9em;">Check AI model status</p>
+                <p style="margin-top: 5px; font-size: 0.85em; color: var(--text-dim);">Headers: Authorization: Bearer TOKEN</p>
+            </div>
+
+            <h3 style="color: var(--accent); margin-top: 25px; margin-bottom: 15px;">📊 Documentation Links</h3>
+            <div class="endpoint-item">
+                <span class="endpoint-method" style="background: var(--accent-3); color: white;">DOCS</span> <strong>/docs</strong>
+                <p style="margin-top: 5px; font-size: 0.9em;">Swagger UI - Interactive API documentation</p>
+            </div>
+            <div class="endpoint-item">
+                <span class="endpoint-method" style="background: var(--accent-3); color: white;">DOCS</span> <strong>/redoc</strong>
+                <p style="margin-top: 5px; font-size: 0.9em;">ReDoc - Alternative API documentation</p>
+            </div>
+        </div>
+
+        <!-- TAB 7: RAW REQUESTS -->
+        <div id="raw_requests" class="tab-pane">
+            <h2 class="section-title">📝 Raw API Requests</h2>
+
+            <h3 style="color: var(--accent); margin-top: 0;">1. Register User</h3>
+            <pre>POST /auth/register HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+
+{
+  "username": "demouser",
+  "email": "demo@example.com",
+  "password": "DemoPass123"
+}
+
+Response (200):
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer"
+}</pre>
+
+            <h3 style="color: var(--accent);">2. Login User</h3>
+            <pre>POST /auth/login HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+
+{
+  "username": "demouser",
+  "password": "DemoPass123"
+}
+
+Response (200):
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer"
+}</pre>
+
+            <h3 style="color: var(--accent);">3. Generate Text (Protected)</h3>
+            <pre>POST /model/generate HTTP/1.1
+Host: localhost:8000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "prompt": "What is machine learning?",
+  "max_tokens": 100,
+  "temperature": 0.7
+}
+
+Response (200):
+{
+  "generated_text": "Machine learning is...",
+  "model": "mistral",
+  "tokens_generated": 45
+}</pre>
+
+            <h3 style="color: var(--accent);">4. Check Model Status (Protected)</h3>
+            <pre>GET /model/status HTTP/1.1
+Host: localhost:8000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Response (200):
+{
+  "model": "mistral",
+  "status": "online",
+  "available": true
+}</pre>
+
+            <h3 style="color: var(--accent);">5. Health Check (Public)</h3>
+            <pre>GET /health HTTP/1.1
+Host: localhost:8000
+
+Response (200):
+{
+  "status": "healthy"
+}</pre>
+
+            <h3 style="color: var(--accent);">6. Request Without Token (Error)</h3>
+            <pre>POST /model/generate HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+
+{
+  "prompt": "test"
+}
+
+Response (401):
+{
+  "detail": "Not authenticated"
+}</pre>
+
+            <h3 style="color: var(--accent);">7. Invalid Pydantic v2 Validation</h3>
+            <pre>POST /model/generate HTTP/1.1
+Host: localhost:8000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "prompt": "test",
+  "max_tokens": 5000,
+  "temperature": 10.0
+}
+
+Response (422):
+{
+  "detail": [
+    {
+      "loc": ["body", "max_tokens"],
+      "msg": "ensure this value is less than or equal to 2000",
+      "type": "value_error.number.not_le"
+    }
+  ]
+}</pre>
+
+            <h3 style="color: var(--accent); margin-top: 30px;">cURL Examples</h3>
+            <pre>
+# Register
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demouser","email":"demo@example.com","password":"DemoPass123"}'
+
+# Login
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demouser","password":"DemoPass123"}'
+
+# Generate (replace TOKEN with actual token)
+curl -X POST http://localhost:8000/model/generate \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"What is AI?","max_tokens":100,"temperature":0.7}'
+
+# Check Status
+curl -X GET http://localhost:8000/model/status \
+  -H "Authorization: Bearer TOKEN"
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let accessToken = localStorage.getItem('accessToken');
+
+        function openTab(evt, tabName) {
+            const tabpanes = document.querySelectorAll('.tab-pane');
+            tabpanes.forEach(pane => pane.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+
+            updateAuthUI();
+        }
+
+        function decodeJWT(token) {
+            try {
+                const payload = token.split('.')[1];
+                const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+                const json = decodeURIComponent(atob(base64).split('').map(c =>
+                    '%' + c.charCodeAt(0).toString(16).padStart(2, '0')
+                ).join(''));
+                return JSON.parse(json);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function updateAuthUI() {
+            const navChip = document.getElementById('navAuthChip');
+            if (accessToken) {
+                const claims = decodeJWT(accessToken);
+                const username = claims && claims.sub ? claims.sub : 'unknown';
+
+                document.getElementById('tokenSection').style.display = 'block';
+                document.getElementById('tokenDisplay').textContent = accessToken;
+                navChip.className = 'status-chip on';
+                navChip.innerHTML = '<span class="dot"></span> ' + username;
+            } else {
+                document.getElementById('tokenSection').style.display = 'none';
+                navChip.className = 'status-chip';
+                navChip.innerHTML = '<span class="dot"></span> Not Authenticated';
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (!username || !email || !password) {
+                showResponse('registerResponse', 'Please fill all fields', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    accessToken = data.access_token;
+                    localStorage.setItem('accessToken', accessToken);
+                    updateAuthUI();
+                    showResponse('registerResponse', JSON.stringify(data, null, 2), false);
+                } else {
+                    showResponse('registerResponse', JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                showResponse('registerResponse', 'Error: ' + error.message, true);
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showResponse('loginResponse', 'Please fill all fields', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    accessToken = data.access_token;
+                    localStorage.setItem('accessToken', accessToken);
+                    updateAuthUI();
+                    showResponse('loginResponse', JSON.stringify(data, null, 2), false);
+                } else {
+                    showResponse('loginResponse', JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                showResponse('loginResponse', 'Error: ' + error.message, true);
+            }
+        }
+
+        function loadModels() {
+            const provider = document.getElementById('provider').value;
+            const modelSelect = document.getElementById('model');
+            const modelInfo = document.getElementById('modelInfo');
+
+            modelSelect.innerHTML = '';
+
+            const models = {
+                ollama: [
+                    { id: 'orca-mini', name: 'Orca Mini - Lightweight ✅ Ready', desc: '2GB, downloaded and ready to use' },
+                    { id: 'mistral', name: 'Mistral 7B - Fast & Efficient (downloading)', desc: '4GB, still downloading in background' },
+                    { id: 'llama2', name: 'Llama 2 7B - Meta Model (not downloaded)', desc: '4GB, run ollama pull llama2 first' },
+                    { id: 'neural-chat', name: 'Neural Chat - Conversation (not downloaded)', desc: '4GB, run ollama pull neural-chat first' },
+                    { id: 'dolphin', name: 'Dolphin - Uncensored (not downloaded)', desc: '4GB, run ollama pull dolphin first' }
+                ],
+                huggingface: [
+                    { id: 'gpt2', name: 'GPT-2 - OpenAI Model', desc: 'Free API, 124M params' },
+                    { id: 'distilgpt2', name: 'DistilGPT-2 - Smaller', desc: 'Free API, 82M params, faster' },
+                    { id: 't5-small', name: 'T5 Small - Text-to-Text', desc: 'Free API, Google model' },
+                    { id: 'pegasus-cnn', name: 'PEGASUS - Summarization', desc: 'Free API, Text summarization' },
+                    { id: 'bloom-560m', name: 'BLOOM 560M - BigScience', desc: 'Free API, Multilingual' }
+                ]
+            };
+
+            const selectedModels = models[provider] || [];
+            selectedModels.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.id;
+                option.textContent = model.name;
+                option.dataset.desc = model.desc;
+                modelSelect.appendChild(option);
+            });
+
+            updateModelInfo();
+        }
+
+        function updateModelInfo() {
+            const modelSelect = document.getElementById('model');
+            const selected = modelSelect.options[modelSelect.selectedIndex];
+            const desc = selected.dataset.desc || '';
+            const modelInfo = document.getElementById('modelInfo');
+
+            if (desc) {
+                modelInfo.textContent = '📊 ' + desc;
+                modelInfo.style.display = 'block';
+            }
+        }
+
+        async function generateText() {
+            if (!accessToken) {
+                showResponse('generateResponse', 'Error: Please login first', true);
+                return;
+            }
+
+            const prompt = document.getElementById('prompt').value;
+            const maxTokens = parseInt(document.getElementById('maxTokens').value);
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const provider = document.getElementById('provider').value;
+            const model = document.getElementById('model').value;
+
+            if (!prompt) {
+                showResponse('generateResponse', 'Please enter a prompt', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/model/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        prompt,
+                        max_tokens: maxTokens,
+                        temperature,
+                        provider,
+                        model
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showResponse('generateResponse', JSON.stringify(data, null, 2), false);
+                } else {
+                    showResponse('generateResponse', JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                showResponse('generateResponse', 'Error: ' + error.message, true);
+            }
+        }
+
+        async function checkStatus() {
+            if (!accessToken) {
+                showResponse('generateResponse', 'Error: Please login first', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/model/status`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showResponse('generateResponse', JSON.stringify(data, null, 2), false);
+                } else {
+                    showResponse('generateResponse', JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                showResponse('generateResponse', 'Error: ' + error.message, true);
+            }
+        }
+
+        function clearToken() {
+            accessToken = null;
+            localStorage.removeItem('accessToken');
+            updateAuthUI();
+        }
+
+        function showResponse(elementId, message, isError) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+            element.className = 'response-box ' + (isError ? 'error' : 'success');
+        }
+
+        loadModels();
+        updateAuthUI();
+    </script>
+</body>
+</html>

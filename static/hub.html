@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecursiveAI - Premium Demo Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #06b6d4;
+            --secondary: #0891b2;
+            --accent: #14b8a6;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f0f9fa;
+            --bg-tertiary: #ecf9fb;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            --border: #cffafe;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0f9fa 0%, #ecf9fb 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #14b8a6 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 12px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.15em;
+            opacity: 0.95;
+            letter-spacing: 0.5px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .tabs-wrapper {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 11px 18px;
+            border: none;
+            background: transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95em;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+            border-color: #cbd5e1;
+            transform: translateY(-4px);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 24px;
+            font-size: 1.4em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95em;
+            letter-spacing: 0.3px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--bg-primary);
+            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        button.primary {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button.primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            transition: left 0.3s ease;
+        }
+
+        button.primary:hover::before {
+            left: 100%;
+        }
+
+        button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+        }
+
+        button.primary:active {
+            transform: translateY(0);
+        }
+
+        button.primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .info-list {
+            list-style: none;
+        }
+
+        .info-list li {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+
+        .info-list li:hover {
+            color: var(--text-primary);
+            transform: translateX(4px);
+        }
+
+        .info-list li::before {
+            content: "✓";
+            color: var(--success);
+            font-weight: 800;
+            font-size: 1.1em;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .response-box {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Courier', monospace;
+            font-size: 0.85em;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 16px;
+            border-left: 4px solid var(--primary);
+            display: none;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            word-break: break-all;
+        }
+
+        .response-box.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                overflow: hidden;
+            }
+            to {
+                opacity: 1;
+                max-height: 300px;
+            }
+        }
+
+        .response-box.success {
+            background: #f0fdf4;
+            border-left-color: var(--success);
+            color: #166534;
+        }
+
+        .response-box.error {
+            background: #fef2f2;
+            border-left-color: var(--error);
+            color: #991b1b;
+        }
+
+        .flow-diagram {
+            padding: 32px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .flow-step:last-child::after {
+            display: none;
+        }
+
+        .flow-step::after {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 60px;
+            width: 2px;
+            height: 40px;
+            background: linear-gradient(to bottom, var(--primary), transparent);
+        }
+
+        .flow-number {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+        }
+
+        .flow-content {
+            margin-left: 20px;
+            flex: 1;
+        }
+
+        .flow-content strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .flow-content span {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .endpoint-item {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .endpoint-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateX(4px);
+        }
+
+        .endpoint-method {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+
+        .endpoint-path {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-family: monospace;
+            margin-bottom: 4px;
+        }
+
+        .endpoint-desc {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            margin: 12px 0;
+            font-family: monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+            line-height: 1.6;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .arch-item {
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .arch-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .arch-item strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .arch-item span {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        /* Chat Message Styles */
+        .chat-message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .chat-message.user {
+            justify-content: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .chat-message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .chat-message.user .chat-message-bubble {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.ai .chat-message-bubble {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message-info {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chat-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .chat-copy-btn {
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chat-copy-btn:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 30px 15px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .tabs-wrapper {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+                text-align: left;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .header {
+                padding: 40px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .header p {
+                font-size: 0.95em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🧠 RecursiveAI</h1>
+            <p>Premium API Testing & Documentation Hub</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tabs-wrapper">
+            <button class="tab-btn active" onclick="switchTab(event, 'register')">📝 Register</button>
+            <button class="tab-btn" onclick="switchTab(event, 'login')">🔑 Login</button>
+            <button class="tab-btn" onclick="switchTab(event, 'model')">🤖 AI Model</button>
+            <button class="tab-btn" onclick="switchTab(event, 'flow')">📊 Flow</button>
+            <button class="tab-btn" onclick="switchTab(event, 'architecture')">🏗️ Architecture</button>
+            <button class="tab-btn" onclick="switchTab(event, 'endpoints')">🔌 Endpoints</button>
+            <button class="tab-btn" onclick="switchTab(event, 'requests')">📨 Requests</button>
+        </div>
+
+        <!-- Register Tab -->
+        <div id="register" class="tab-content active">
+            <div class="content-grid">
+                <div class="card">
+                    <h2>📝 Create Account</h2>
+                    <form onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="regUsername" placeholder="Choose your username" required minlength="3">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="regEmail" placeholder="your@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="regPassword" placeholder="Create a secure password" required minlength="6">
+                        </div>
+                        <button type="submit" class="primary">Create Account</button>
+                    </form>
+                    <div id="regResponse" class="response-box"></div>
+                </div>
+
+                <div class="card">
+                    <h2>✨ Requirements</h2>
+                    <ul class="info-list">
+                        <li>Username: 3-50 characters</li>
+                        <li>Email: Valid email format</li>
+                        <li>Password: Minimum 8 characters</li>
+                        <li>Password: Hashed with Argon2</li>
+                        <li>JWT Token: Auto-generated</li>
+                        <li>Token Expiry: 30 minutes</li>
+                        <li>Database: SQLite persistence</li>
+                        <li>Validation: Pydantic v2 strict</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Tab -->
+        <div id="login" class="tab-content">
+            <div class="content-grid">
+                <div class="card">
+                    <h2>🔑 Sign In</h2>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="loginUsername" placeholder="Enter your username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" class="primary">Sign In</button>
+                    </form>
+                    <div id="loginResponse" class="response-box"></div>
+                </div>
+
+                <div class="card">
+                    <h2>ℹ️ About Login</h2>
+                    <ul class="info-list">
+                        <li>Endpoint: POST /auth/login</li>
+                        <li>No authentication required</li>
+                        <li>Returns JWT access token</li>
+                        <li>Token format: Bearer scheme</li>
+                        <li>Credentials verified against DB</li>
+                        <li>Password verified with hash</li>
+                        <li>Cryptographically signed tokens</li>
+                        <li>Use token in Authorization header</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Model Tab -->
+        <div id="model" class="tab-content">
+            <div class="card" style="grid-column: 1/-1; display: flex; flex-direction: column; height: 600px;">
+                <h2>🤖 AI Model Chat</h2>
+
+                <!-- Chat Messages Area -->
+                <div id="chatMessagesArea" style="flex: 1; overflow-y: auto; margin: 20px 0; padding: 20px; background: var(--bg-secondary); border-radius: 12px; display: flex; flex-direction: column; gap: 16px;">
+                    <div style="text-align: center; color: var(--text-tertiary); padding: 40px 20px;">
+                        <p>Start a conversation by asking a question below</p>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div style="display: flex; gap: 12px; margin-top: 16px;">
+                    <div style="flex: 1; display: flex; align-items: flex-end; border: 1.5px solid var(--border); border-radius: 20px; padding: 12px 16px; background: var(--bg-secondary);">
+                        <textarea id="chatInput" placeholder="Ask anything..." rows="1" style="flex: 1; border: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: 1em; resize: none; max-height: 120px; outline: none;"></textarea>
+                    </div>
+                    <button type="button" onclick="handleChatGenerate()" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2em; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        ↑
+                    </button>
+                </div>
+
+                <!-- Parameters Collapsed -->
+                <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+                    <details style="cursor: pointer;">
+                        <summary style="color: var(--primary); font-weight: 600; user-select: none;">⚙️ Advanced Options</summary>
+                        <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9em;">Token</label>
+                                <input type="password" id="chatToken" placeholder="Paste JWT token" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9em;">Max Tokens</label>
+                                <input type="number" id="chatMaxTokens" value="100" min="10" max="1000" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9em;">Temperature</label>
+                                <input type="number" id="chatTemp" value="0.7" min="0" max="2" step="0.1" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                            </div>
+                            <div></div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Flow Tab -->
+        <div id="flow" class="tab-content">
+            <div class="card">
+                <h2>📊 Authentication Flow</h2>
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <div class="flow-number">1</div>
+                        <div class="flow-content">
+                            <strong>User Registration</strong>
+                            <span>POST /auth/register with credentials</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-number">2</div>
+                        <div class="flow-content">
+                            <strong>JWT Token Generated</strong>
+                            <span>HS256 signed token with user claims</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-number">3</div>
+                        <div class="flow-content">
+                            <strong>Token Storage</strong>
+                            <span>30-minute expiry, secure format</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-number">4</div>
+                        <div class="flow-content">
+                            <strong>Protected Endpoints</strong>
+                            <span>Authorization: Bearer {token}</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-number">5</div>
+                        <div class="flow-content">
+                            <strong>Verification</strong>
+                            <span>JWT decoded, signature verified, expiry checked</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-number">6</div>
+                        <div class="flow-content">
+                            <strong>Authorization Success</strong>
+                            <span>Execute endpoint and return response</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Tab -->
+        <div id="architecture" class="tab-content">
+            <div class="card">
+                <h2>🏗️ System Architecture</h2>
+                <div class="architecture-grid">
+                    <div class="arch-item">
+                        <strong>⚡ FastAPI Framework</strong>
+                        <span>Modern async web framework with auto-generated docs and high performance</span>
+                    </div>
+                    <div class="arch-item">
+                        <strong>✓ Pydantic v2</strong>
+                        <span>Strict runtime schema validation for requests and responses</span>
+                    </div>
+                    <div class="arch-item">
+                        <strong>🔐 JWT Auth</strong>
+                        <span>HS256 signed tokens with expiry and user identity claims</span>
+                    </div>
+                    <div class="arch-item">
+                        <strong>💾 SQLAlchemy ORM</strong>
+                        <span>Database models with SQLite for persistent data storage</span>
+                    </div>
+                    <div class="arch-item">
+                        <strong>🔒 Argon2 Hashing</strong>
+                        <span>Memory-hard secure password hashing algorithm</span>
+                    </div>
+                    <div class="arch-item">
+                        <strong>🌐 CORS Middleware</strong>
+                        <span>Cross-origin resource sharing for web clients</span>
+                    </div>
+                    <div class="arch-item">
+                        <strong>🐳 Docker Container</strong>
+                        <span>Production-ready containerization</span>
+                    </div>
+                    <div class="arch-item">
+                        <strong>📊 Open Models</strong>
+                        <span>Ollama local or Hugging Face integration</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Endpoints Tab -->
+        <div id="endpoints" class="tab-content">
+            <div class="card">
+                <h2>🔌 API Endpoints</h2>
+                <div style="margin-top: 20px;">
+                    <div class="endpoint-item">
+                        <div class="endpoint-method">🔓 POST</div>
+                        <div class="endpoint-path">/auth/register</div>
+                        <div class="endpoint-desc">Register new user and receive JWT token</div>
+                    </div>
+                    <div class="endpoint-item">
+                        <div class="endpoint-method">🔓 POST</div>
+                        <div class="endpoint-path">/auth/login</div>
+                        <div class="endpoint-desc">Login with credentials and receive JWT token</div>
+                    </div>
+                    <div class="endpoint-item">
+                        <div class="endpoint-method">🔐 GET</div>
+                        <div class="endpoint-path">/model/status</div>
+                        <div class="endpoint-desc">Check model availability (requires authentication)</div>
+                    </div>
+                    <div class="endpoint-item">
+                        <div class="endpoint-method">🔐 POST</div>
+                        <div class="endpoint-path">/model/generate</div>
+                        <div class="endpoint-desc">Generate text with AI model (requires authentication)</div>
+                    </div>
+                    <div class="endpoint-item">
+                        <div class="endpoint-method">🔓 GET</div>
+                        <div class="endpoint-path">/health</div>
+                        <div class="endpoint-desc">Health check endpoint</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Raw Requests Tab -->
+        <div id="requests" class="tab-content">
+            <div class="card">
+                <h2>📨 API Request Examples</h2>
+                <div style="margin-top: 20px;">
+                    <div>
+                        <strong style="color: var(--primary);">Register Request</strong>
+                        <div class="code-block">curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "john_doe",
+    "email": "john@example.com",
+    "password": "SecurePass123"
+  }'</div>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <strong style="color: var(--primary);">Generate Text Request</strong>
+                        <div class="code-block">curl -X POST http://localhost:8000/model/generate \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "What is artificial intelligence?",
+    "max_tokens": 100,
+    "temperature": 0.7
+  }'</div>
+                    </div>
+
+                    <div style="margin-top: 24px; padding: 16px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 10px; border: 1px solid var(--border);">
+                        <a href="http://localhost:8000/docs" style="color: var(--primary); text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                            → View Interactive API Documentation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        function switchTab(e, tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            e.target.classList.add('active');
+        }
+
+        function showResponse(elementId, data, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.className = `response-box show ${isSuccess ? 'success' : 'error'}`;
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+                showResponse('regResponse', data, response.ok);
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    setTimeout(() => alert('✓ Registration successful! Token saved.'), 500);
+                }
+            } catch (error) {
+                showResponse('regResponse', { error: error.message }, false);
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                showResponse('loginResponse', data, response.ok);
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    const modelTokenEl = document.getElementById('modelToken');
+                    if (modelTokenEl) modelTokenEl.value = data.access_token;
+                    const chatTokenEl = document.getElementById('chatToken');
+                    if (chatTokenEl) chatTokenEl.value = data.access_token;
+                    setTimeout(() => alert('✓ Login successful! Token saved.'), 500);
+                }
+            } catch (error) {
+                showResponse('loginResponse', { error: error.message }, false);
+            }
+        }
+
+        async function handleGenerate() {
+            const modelTokenEl = document.getElementById('modelToken');
+            const modelPromptEl = document.getElementById('modelPrompt');
+            const modelTokensEl = document.getElementById('modelTokens');
+            const modelTempEl = document.getElementById('modelTemp');
+
+            if (!modelTokenEl || !modelPromptEl || !modelTokensEl || !modelTempEl) {
+                return;
+            }
+
+            const token = modelTokenEl.value;
+            const prompt = modelPromptEl.value;
+            const maxTokens = modelTokensEl.value;
+            const temperature = modelTempEl.value;
+
+            if (!token) {
+                alert('Please enter your JWT token');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/model/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        prompt,
+                        max_tokens: parseInt(maxTokens),
+                        temperature: parseFloat(temperature)
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('modelResponse', data, response.ok);
+            } catch (error) {
+                showResponse('modelResponse', { error: error.message }, false);
+            }
+        }
+
+        // Chat Interface Functions
+        async function handleChatGenerate() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            const token = document.getElementById('chatToken').value || localStorage.getItem('token');
+            const maxTokens = document.getElementById('chatMaxTokens').value;
+            const temperature = document.getElementById('chatTemp').value;
+
+            if (!message) return;
+            if (!token) {
+                alert('Please enter your JWT token in Advanced Options');
+                return;
+            }
+
+            const messagesArea = document.getElementById('chatMessagesArea');
+
+            // Clear empty state if exists
+            if (messagesArea.innerHTML.includes('Start a conversation')) {
+                messagesArea.innerHTML = '';
+            }
+
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-message user';
+            userMsg.innerHTML = `<div class="chat-message-bubble">${escapeHtml(message)}</div>`;
+            messagesArea.appendChild(userMsg);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+
+            input.value = '';
+            input.style.height = 'auto';
+
+            // Add loading message
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'chat-message ai';
+            loadingMsg.innerHTML = `<div class="chat-message-bubble">...</div>`;
+            messagesArea.appendChild(loadingMsg);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+
+            try {
+                const response = await fetch(`${API_BASE}/model/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        prompt: message,
+                        max_tokens: parseInt(maxTokens),
+                        temperature: parseFloat(temperature),
+                        provider: 'huggingface',
+                        model: 'gpt2'
+                    })
+                });
+
+                const data = await response.json();
+                messagesArea.removeChild(loadingMsg);
+
+                if (response.ok) {
+                    const aiMsg = document.createElement('div');
+                    aiMsg.className = 'chat-message ai';
+                    const tokenCount = data.tokens_generated || maxTokens;
+                    const model = data.model || 'mistral';
+                    const provider = data.provider || 'huggingface';
+
+                    aiMsg.innerHTML = `
+                        <div>
+                            <div class="chat-message-bubble">${escapeHtml(data.generated_text)}</div>
+                            <div class="chat-message-info">
+                                <span class="chat-badge">🤖 ${model}</span>
+                                <span class="chat-badge">⚙️ ${provider}</span>
+                                <span class="chat-badge">📊 ~${tokenCount} tokens</span>
+                                <button class="chat-copy-btn" onclick="copyChatText('${escapeHtml(data.generated_text).replace(/'/g, "\\'")}')">${String.fromCharCode(128203)} Copy Text</button>
+                            </div>
+                        </div>
+                    `;
+                    messagesArea.appendChild(aiMsg);
+                } else {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'chat-message ai';
+                    errorMsg.innerHTML = `<div class="chat-message-bubble" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;">Error: ${data.detail || 'Failed to generate response'}</div>`;
+                    messagesArea.appendChild(errorMsg);
+                }
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            } catch (error) {
+                messagesArea.removeChild(loadingMsg);
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'chat-message ai';
+                errorMsg.innerHTML = `<div class="chat-message-bubble" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;">Connection error: ${error.message}</div>`;
+                messagesArea.appendChild(errorMsg);
+            }
+        }
+
+        function copyChatText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Auto-resize chat input
+        document.addEventListener('input', function(e) {
+            if (e.target.id === 'chatInput') {
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+            }
+        });
+
+        // Send on Ctrl+Enter in chat
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey && document.getElementById('chatInput') === document.activeElement) {
+                handleChatGenerate();
+            }
+        });
+
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                document.getElementById('modelToken').value = token;
+                document.getElementById('chatToken').value = token;
+            }
+        });
+    </script>
+</body>
+</html>
